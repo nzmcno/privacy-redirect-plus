@@ -18,14 +18,13 @@ PrivacyRedirect+ is committed to protecting your privacy. This Privacy Policy ex
 
 ### Information We DO Collect:
 
-- **Local Settings**: Your preferences (which sites to redirect, whether the extension is enabled) are stored locally in your browser using Chrome's Storage API. This information never leaves your device.
+- **Settings**: Your preferences (which sites to redirect) are stored using Chrome's sync storage. We never receive them. If Chrome Sync is turned on, Chrome syncs them across your devices through your Google account.
 
 ## How Your Information Is Used
 
-Your locally stored preferences are used solely to:
+Your stored preferences are used solely to:
 
 - Remember which redirects you have enabled/disabled
-- Remember whether the extension as a whole is enabled/disabled
 - Save your customized settings between browser sessions
 
 ## Data Sharing and Disclosure
@@ -33,29 +32,29 @@ Your locally stored preferences are used solely to:
 We do not share or disclose any information because:
 
 1. We don't collect any data that could be shared
-2. The extension operates entirely locally on your device
-3. No data is transmitted to any external servers (ours or third parties)
+2. The extension has no servers of its own and makes no background requests
+3. The only data sent to a third party is the address of a page you visit on a redirected site, as described below
 
 ## Third-Party Services
 
-When you use PrivacyRedirect+, you will be redirected to privacy-friendly alternatives via [farside.link](https://farside.link). Please note:
+When you visit a site with its redirect turned on, PrivacyRedirect+ sends you to an independently run instance of a privacy-friendly alternative instead. The extension's list of instances is bundled with it. Please note:
 
+- That instance receives the page's address (path and query string) along with your IP address, as with any website you visit
+- The original site may also receive the start of the request, because the redirect happens as the navigation begins
 - We have no control over these third-party services
 - Each service has its own privacy policy
 - We recommend reviewing the privacy policies of these services
-- Farside.link acts as a redirect service and may have its own privacy practices
 
 ## Your Choices and Rights
 
 You have complete control over the extension:
 
-- Toggle the entire extension on/off
 - Choose which specific sites to redirect
 - Uninstall the extension at any time to remove all stored preferences
 
 ## Security
 
-Since all data is stored locally on your device, the security of your information depends on the security of your browser. Chrome's Storage API provides isolation between extensions, meaning other extensions cannot access PrivacyRedirect+'s data.
+The security of your settings depends on the security of your browser and, if Chrome Sync is on, your Google account. Chrome's Storage API provides isolation between extensions, meaning other extensions cannot access PrivacyRedirect+'s data.
 
 ## Changes to This Privacy Policy
 
@@ -67,4 +66,4 @@ If you have any questions about this Privacy Policy, please open an issue on our
 
 ## Effective Date
 
-This Privacy Policy is effective as of [Date].
+This Privacy Policy is effective as of November 4, 2026.

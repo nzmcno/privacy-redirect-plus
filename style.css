@@ -41,7 +41,11 @@ body {
     padding: 0.5rem 0;
     border-bottom: 1px solid #ddd;
   }
-  
+
+  .toggle-row.unavailable {
+    color: #888;
+  }
+
   /* Updated styles for categorized quick access */
   .quickaccess-category {
     margin-bottom: 1.5rem;
