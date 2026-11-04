@@ -33,7 +33,7 @@ We do not share or disclose any information because:
 
 1. We don't collect any data that could be shared
 2. The extension has no servers of its own and makes no background requests
-3. The only data sent to a third party is the address of a page you visit on a redirected site, as described below
+3. The only data sent to a third party is the address of a page you visit on a redirected site, as described below, and the check described under Third-Party Services
 
 ## Third-Party Services
 
@@ -41,6 +41,7 @@ When you visit a site with its redirect turned on, PrivacyRedirect+ sends you to
 
 - That instance receives the page's address (path and query string) along with your IP address, as with any website you visit
 - The original site may also receive the start of the request, because the redirect happens as the navigation begins
+- When you press Check instances, your browser contacts each listed server once, which shows each of them your IP address. It sends no cookies, page addresses or other data, happens only when you press the button, and the results stay on your device
 - We have no control over these third-party services
 - Each service has its own privacy policy
 - We recommend reviewing the privacy policies of these services

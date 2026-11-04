@@ -25,6 +25,8 @@
   --pill-positive-ink: #04250e;
   --pill-warning-bg: #fffbeb;
   --pill-warning-ink: #92400e;
+  --pill-negative-bg: #ffedea;
+  --pill-negative-ink: #831c1e;
 
   --radius-sheet: 16px;
   --radius-card: 8px;
@@ -56,6 +58,8 @@
     --pill-positive-ink: #5dd392;
     --pill-warning-bg: #2d2413;
     --pill-warning-ink: #f0c36d;
+    --pill-negative-bg: #2c1a20;
+    --pill-negative-ink: #f0717f;
   }
 }
 
@@ -525,6 +529,20 @@ h3 {
   color: var(--pill-warning-ink);
 }
 
+.pill-negative {
+  background: var(--pill-negative-bg);
+  color: var(--pill-negative-ink);
+}
+
+.pills {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.pills:empty {
+  display: none;
+}
+
 .empty {
   padding: 8px 12px;
   border: 1px dashed var(--control);
@@ -595,15 +613,27 @@ h3 {
   text-underline-offset: 3px;
 }
 
-.archive summary {
+.more-hosts summary {
   padding: 4px 0;
   color: var(--muted);
   font-size: 12px;
   cursor: pointer;
 }
 
-.archive[open] .host {
+.more-hosts .host {
   color: var(--text);
+}
+
+.check-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 /* Self-host */

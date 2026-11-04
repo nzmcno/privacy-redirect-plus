@@ -2,7 +2,8 @@
 // Chrome Extension Background Script for PrivacyRedirect+
 // Redirects popular domains to their privacy-focused alternatives
 
-import { NAVIGATION_FILTER, failoverFilter, getRedirect, pickInstance } from "./redirects.js";
+import { runInstanceCheck } from "./checker.js";
+import { NAVIGATION_FILTER, failoverFilter, getRedirect, loadInstallSeed, pickInstance } from "./redirects.js";
 
 // Failures that say nothing about the instance, so trying another one wouldn't help
 const NON_RETRYABLE_ERRORS = new Set([
@@ -12,7 +13,7 @@ const NON_RETRYABLE_ERRORS = new Set([
 ]);
 
 let customMap = {};
-let prefs = { customInstances: {}, addedInstances: {} };
+let prefs = { customInstances: {}, addedInstances: {}, seed: 0 };
 
 // Redirects still loading, by tab, so a failed instance can be swapped for another
 const activeRedirects = new Map();
@@ -31,7 +32,7 @@ function onInstanceFailed(details) {
 
   const instance = NON_RETRYABLE_ERRORS.has(details.error)
     ? null
-    : pickInstance(redirect.service, redirect.tried, prefs.addedInstances);
+    : pickInstance(redirect.service, redirect.tried, prefs);
 
   if (!instance) {
     activeRedirects.delete(details.tabId);
@@ -59,13 +60,23 @@ function watchInstances() {
 
 // The worker stops when idle and restarts for the navigation that wakes it, so that
 // navigation has to wait for saved settings rather than being skipped.
-const settingsReady = chrome.storage.sync.get(["customMap", "customInstances", "addedInstances"]).then((res) => {
+const settingsReady = Promise.all([
+  chrome.storage.sync.get(["customMap", "customInstances", "addedInstances"]),
+  loadInstallSeed()
+]).then(([res, seed]) => {
   customMap = res.customMap ?? {};
-  prefs = { customInstances: res.customInstances ?? {}, addedInstances: res.addedInstances ?? {} };
+  prefs = { customInstances: res.customInstances ?? {}, addedInstances: res.addedInstances ?? {}, seed };
   watchInstances();
 });
 
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === "checkInstances") {
+    runInstanceCheck().catch((error) => console.error("Error checking instances:", error));
+  }
+});
+
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.installSeed) prefs.seed = changes.installSeed.newValue ?? 0;
   if (area !== "sync") return;
   if (changes.customMap) customMap = changes.customMap.newValue ?? {};
   if (changes.customInstances) prefs.customInstances = changes.customInstances.newValue ?? {};

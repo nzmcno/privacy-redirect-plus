@@ -33,12 +33,13 @@ export const PROJECTS = [
 
 export const SOURCES = [
   { name: "Farside", detail: "Shut down in August 2026, repository archived", url: "https://github.com/benbusby/farside" },
-  { name: "Farside's final services.json", detail: "Last updated 2026-08-19, commit af08778f3c", url: "https://github.com/benbusby/farside/blob/af08778f3c/services.json" },
-  { name: "Farside on the Internet Archive", detail: "Saved 2026-07-19, the Archive list on this page", url: "https://web.archive.org/web/20260719005419/https://farside.link/" },
+  { name: "Farside's full instance list", detail: "services-full.json, last updated 2026-08-19", url: "https://github.com/benbusby/farside/blob/af08778f3c/services-full.json" },
+  { name: "Farside's final instance list", detail: "services.json, last updated 2026-08-19", url: "https://github.com/benbusby/farside/blob/af08778f3c/services.json" },
+  { name: "Farside on the Internet Archive", detail: "Its last public page, saved 2026-07-19", url: "https://web.archive.org/web/20260719005419/https://farside.link/" },
   { name: "LibRedirect instances", detail: "Maintained list, source of the Dumb hosts", url: "https://github.com/libredirect/instances" }
 ];
 
-// Hosts that were reachable on 2026-11-04 but didn't show their content to a plain request
+// Hosts that answered on 2026-11-04 but didn't show their content to a plain request
 export const INSTANCE_NOTES = {
   "https://yt.chocolatemoo53.com": "Visitor check",
   "https://inv.nadeko.net": "Visitor check",

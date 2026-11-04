@@ -42,7 +42,7 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 - **Automatic Redirects:** Seamlessly redirects major platforms to privacy-friendly alternatives
 - **Highly Customizable:** Enable/disable redirects on a per-site basis, and see where each site goes
 - **Use Your Own Instances:** Add as many as you like for any project, or make one the default for a site
-- **Instance Directory:** Browse every known host, its source and when it was last checked
+- **Instance Directory:** Every known host, with a button to check which servers answer
 - **Open-Source Directory:** Find the repository behind every frontend, ready to self-host
 - **Quick Access Panel:** Easily access all supported privacy frontends with one click
 - **No Tracking:** Zero data collection, completely respects your privacy
@@ -73,7 +73,7 @@ Every frontend is open source, and the **Self-host** tab links each project's re
 
 ### Where the instances come from
 
-[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. Dumb had no working host there, so its hosts come from [LibRedirect](https://github.com/libredirect/instances). Farside's own data is kept in [`data/`](data/): its final `services.json` and the last public list saved by the Internet Archive on 2026-07-19. The list is bundled with the extension and is not fetched at runtime. Nothing checks instance health ahead of time: the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
+[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. Dumb had no working host there, so its hosts come from [LibRedirect](https://github.com/libredirect/instances). Farside's own data is kept in [`data/`](data/): its final `services.json` and `services-full.json`, and the last public list saved by the Internet Archive on 2026-07-19. Every host in them is listed in the **Instances** tab, but redirects only use the checked list unless you choose otherwise. The lists are bundled with the extension and is not fetched at runtime. **Check instances** in the **Instances** tab contacts every server once when you press it, and marks each Live or Offline. Live means the server answered, not that its pages work: without host permissions the extension can't read the response. During normal browsing the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
 
 ## 🔎 Quick Access Services
 
@@ -119,7 +119,7 @@ PrivacyRedirect+ provides quick access to various privacy-focused services:
 
 1. Click the PrivacyRedirect+ icon in your browser toolbar
 2. In **Sites**, toggle individual sites on/off and see where each one goes
-3. In **Instances**, browse every known host and its source, and add your own
+3. In **Instances**, see the host each project uses, check which servers are live, and add your own
 4. In **Self-host**, find each project's repository and add the instances you run
 5. In **Quick access**, open a privacy service directly
 

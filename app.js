@@ -1,7 +1,7 @@
 // app.js
 // Tab switching and rendering for the popup and the options page
 
-import { VIEWS, clearStamps, isEditingInstance, loadSettings } from "./ui.js";
+import { VIEWS, clearStamps, isCheckRunning, isEditingInstance, loadSettings, updateCheckProgress } from "./ui.js";
 
 const main = document.getElementById("view");
 const tabs = [...document.querySelectorAll("[data-view]")];
@@ -49,10 +49,13 @@ document.getElementById("open-options")?.addEventListener("click", () => {
 });
 
 // Keeps the popup and options page in step, without clearing an address someone is still typing
-chrome.storage.onChanged.addListener(async (changes, area) => {
-  if (area !== "sync") return;
+chrome.storage.onChanged.addListener(async (changes) => {
   await loadSettings();
-  if (!isEditingInstance()) render();
+  if (changes.instanceCheck && isCheckRunning() && document.getElementById("check-instances")?.disabled) {
+    updateCheckProgress();
+  } else if (!isEditingInstance()) {
+    render();
+  }
 });
 
 await loadSettings();

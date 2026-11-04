@@ -129,7 +129,8 @@ export function instancePool(service, addedInstances = {}) {
   return added.length ? added : INSTANCES[service] ?? [];
 }
 
-// prefs holds customInstances, one chosen default per service, and addedInstances, a list per service
+// prefs holds customInstances, one chosen default per service; addedInstances, a list per service;
+// and seed, this install's start point in the public lists
 export function hasInstances(site, prefs = {}) {
   return Boolean(prefs.customInstances?.[site.service]) || instancePool(site.service, prefs.addedInstances).length > 0;
 }
@@ -140,10 +141,41 @@ export function isSiteEnabled(site, customMap) {
   return !site.hosts.some((host) => customMap[host] === "");
 }
 
-// Picks a random host for the service, skipping any that have already failed
-export function pickInstance(service, exclude = [], addedInstances = {}) {
-  const candidates = instancePool(service, addedInstances).filter((instance) => !exclude.includes(instance));
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+// The order hosts are tried in. Each install starts at its own point in the public list, so it has one
+// real default while users as a whole stay spread across volunteer servers. Added instances keep their order.
+function hostsInOrder(service, prefs = {}) {
+  const pool = instancePool(service, prefs.addedInstances);
+  if (addedFor(service, prefs.addedInstances).length || !pool.length) return pool;
+  const start = (prefs.seed ?? 0) % pool.length;
+  return [...pool.slice(start), ...pool.slice(0, start)];
+}
+
+// The next host to try for the service, skipping any that have already failed
+export function pickInstance(service, exclude = [], prefs = {}) {
+  return hostsInOrder(service, prefs).find((instance) => !exclude.includes(instance)) ?? null;
+}
+
+// The host a service goes to right now
+export function defaultInstance(service, prefs = {}) {
+  return prefs.customInstances?.[service] ?? pickInstance(service, [], prefs);
+}
+
+// This install's start point in the public lists, chosen once. Stays on this device, like the check results.
+export async function loadInstallSeed() {
+  const { installSeed } = await chrome.storage.local.get("installSeed");
+  if (installSeed != null) return installSeed;
+
+  const seed = Math.floor(Math.random() * 1000000);
+  await chrome.storage.local.set({ installSeed: seed });
+  return seed;
+}
+
+// Hosts on overlay networks, which a normal connection can't reach
+export function overlayNetwork(url) {
+  const { hostname } = new URL(url);
+  if (hostname.endsWith(".onion")) return "Tor only";
+  if (hostname.endsWith(".ygg")) return "Yggdrasil only";
+  return null;
 }
 
 // Wikis live on subdomains (minecraft.fandom.com/wiki/Creeper), which BreezeWiki serves as /minecraft/wiki/Creeper
@@ -166,7 +198,7 @@ export function getRedirect(rawUrl, customMap, prefs = {}) {
   if (!target || !isSiteEnabled(target.site, customMap)) return null;
 
   const pinned = prefs.customInstances?.[target.site.service];
-  const instance = pinned ?? pickInstance(target.site.service, [], prefs.addedInstances);
+  const instance = defaultInstance(target.site.service, prefs);
   if (!instance) return null;
 
   return {

@@ -1,20 +1,24 @@
 // ui.js
 // Views shared by the popup and the options page
 
-import { FARSIDE_ARCHIVE, FARSIDE_ARCHIVE_DATE } from "./archive.js";
 import { INSTANCE_NOTES, PROJECTS, SOURCES } from "./catalog.js";
+import { KNOWN_INSTANCES } from "./directory.js";
 import {
   INSTANCES,
   SITES,
   addedFor,
+  defaultInstance,
   hasInstances,
   isSiteEnabled,
+  loadInstallSeed,
+  overlayNetwork,
   parseInstanceUrl
 } from "./redirects.js";
 
-const CHECK_DATE = "2026-11-04";
+// A check that hasn't reported for this long stopped with the service worker
+const CHECK_STALE_MS = 30000;
 
-const settings = { customMap: {}, customInstances: {}, addedInstances: {} };
+const settings = { customMap: {}, customInstances: {}, addedInstances: {}, seed: 0, check: {} };
 
 // Forms that just saved, so their confirmation outlives the re-render saving causes
 const savedStamps = new Set();
@@ -22,16 +26,29 @@ const savedStamps = new Set();
 // Add-instance forms opened in the Instances tab, kept across re-renders
 const openForms = new Set();
 
+// Host lists opened in the Instances tab, kept across re-renders
+const openLists = new Set();
+
 // The Instances filter, kept across re-renders
 let instanceQuery = "";
 
 let pendingWrite = Promise.resolve();
 
 export async function loadSettings() {
-  const stored = await chrome.storage.sync.get(["customMap", "customInstances", "addedInstances"]);
+  const [stored, local, seed] = await Promise.all([
+    chrome.storage.sync.get(["customMap", "customInstances", "addedInstances"]),
+    chrome.storage.local.get("instanceCheck"),
+    loadInstallSeed()
+  ]);
   settings.customMap = stored.customMap ?? {};
   settings.customInstances = stored.customInstances ?? {};
   settings.addedInstances = stored.addedInstances ?? {};
+  settings.check = local.instanceCheck ?? {};
+  settings.seed = seed;
+}
+
+export function isCheckRunning() {
+  return Boolean(settings.check.running) && Date.now() - settings.check.updatedAt < CHECK_STALE_MS;
 }
 
 // True while someone has an unsaved address in a field, which a re-render would wipe
@@ -103,7 +120,7 @@ async function removeAddedInstance(service, url) {
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
   for (const [name, value] of Object.entries(props)) {
-    if (name === "onclick" || name === "onchange" || name === "oninput" || name === "onsubmit") {
+    if (name.startsWith("on")) {
       node[name] = value;
     } else if (value === true) {
       node.setAttribute(name, "");
@@ -200,22 +217,14 @@ function addInstanceForm({ id, label, service, choices }) {
 
 function routeFor(site, routeId) {
   const from = site.hosts.find((host) => !host.startsWith("www.")) ?? site.hosts[0];
-  const pinned = settings.customInstances[site.service];
-  const added = addedFor(site.service, settings.addedInstances);
-  const count = INSTANCES[site.service].length;
-  const name = projectFor(site.service).name;
+  const backups = settings.customInstances[site.service] ? 0 : addedFor(site.service, settings.addedInstances).length - 1;
 
   let target;
   if (!hasInstances(site, settings) || !isSiteEnabled(site, settings.customMap)) {
     target = el("span", { class: "route-to route-none" }, "opens normally");
-  } else if (pinned) {
-    target = el("span", { class: "route-to" }, hostOf(pinned));
-  } else if (added.length === 1) {
-    target = el("span", { class: "route-to" }, hostOf(added[0]));
-  } else if (added.length) {
-    target = el("span", { class: "route-to" }, `${added.length} of your hosts`);
   } else {
-    target = el("span", { class: "route-to" }, `${count} ${name} ${count === 1 ? "host" : "hosts"}`);
+    const host = hostOf(defaultInstance(site.service, settings));
+    target = el("span", { class: "route-to" }, backups > 0 ? `${host} +${backups}` : host);
   }
 
   return el("p", { class: "route", id: routeId },
@@ -276,32 +285,100 @@ function renderSites(container, navigate) {
   container.append(pageHeader("Sites", subtitle), list);
 }
 
-// Instances view: every host we know of and where it came from
+// Instances view: the host each project uses now, and every other host we know of
 
 // A host of any frontend for a site can be that site's default, so a Piped host can serve YouTube
 function defaultKeyFor(project) {
   return SITES.find((site) => site.name === project.replaces)?.service ?? project.service;
 }
 
-function instanceStatus(url, kind) {
-  if (kind === "added") return pill("Your instance", "positive");
-  if (kind === "archive") return pill("Archive");
-  return INSTANCE_NOTES[url] ? pill(INSTANCE_NOTES[url], "warning") : pill("Checked", "positive");
+function knownHosts(project) {
+  const own = settings.addedInstances[project.service] ?? [];
+  const known = [...(INSTANCES[project.service] ?? []), ...(KNOWN_INSTANCES[project.service] ?? [])];
+  return [...new Set(known)].filter((url) => !own.includes(url));
 }
 
-function instanceRow(project, url, kind) {
+// Several projects can list one host, so the default is shown once: under the first that lists it,
+// or under the site's main project if it was typed in
+function projectShowingDefault(key, current) {
+  const candidates = PROJECTS.filter((project) => defaultKeyFor(project) === key);
+  return candidates.find((project) =>
+    knownHosts(project).includes(current) || (settings.addedInstances[project.service] ?? []).includes(current)
+  ) ?? candidates.find((project) => project.service === key);
+}
+
+// Live hosts first, then ones not tested yet, then the rest
+function hostRank(url) {
+  if (overlayNetwork(url)) return 2;
+  const live = settings.check.results?.[url];
+  if (live === true) return 0;
+  return live === false ? 3 : 1;
+}
+
+function instanceStatus(url) {
+  const overlay = overlayNetwork(url);
+  if (overlay) return pill(overlay);
+
+  const live = settings.check.results?.[url];
+  if (live === false) return pill("Offline", "negative");
+
+  return el("span", { class: "pills" },
+    INSTANCE_NOTES[url] ? pill(INSTANCE_NOTES[url], "warning") : null,
+    live === true ? pill("Live", "positive") : null);
+}
+
+function instanceRow(project, url, { isDefault = false, isOwn = false } = {}) {
   const key = defaultKeyFor(project);
   const host = hostOf(url);
+  const isPinned = settings.customInstances[key] === url;
+
+  let action = null;
+  if (isPinned) {
+    action = textAction("Stop using", () => saveDefaultInstance(key, null), `Stop using ${host} as the default`);
+  } else if (!isDefault) {
+    action = textAction("Use as default", () => saveDefaultInstance(key, url), `Use ${host} as the default`);
+  }
 
   return el("li", { class: "row host-row", "data-search": `${project.service} ${url}` },
     externalLink(url, host, "host"),
-    instanceStatus(url, kind),
-    settings.customInstances[key] === url
-      ? textAction("Stop using", () => saveDefaultInstance(key, null), `Stop using ${host} as the default`)
-      : textAction("Use as default", () => saveDefaultInstance(key, url), `Use ${host} as the default`),
-    kind === "added"
-      ? textAction("Remove", () => removeAddedInstance(project.service, url), `Remove ${host}`)
-      : null);
+    isDefault ? pill("Default") : null,
+    isOwn ? pill("Your instance", "positive") : null,
+    instanceStatus(url),
+    action,
+    isOwn ? textAction("Remove", () => removeAddedInstance(project.service, url), `Remove ${host}`) : null);
+}
+
+function checkSummary() {
+  const { results, finishedAt, done, total } = settings.check;
+  if (isCheckRunning()) return `Checked ${done ?? 0} of ${total ?? "all"} servers. You can close this while it runs.`;
+  if (!finishedAt) return "Contacts every server from your connection, and only when you press it.";
+
+  const answers = Object.values(results ?? {});
+  const live = answers.filter(Boolean).length;
+  return `${live} live, ${answers.length - live} offline. Last checked ${new Date(finishedAt).toLocaleString()}.`;
+}
+
+// Called while a check runs, instead of redrawing rows that would jump around under the reader
+export function updateCheckProgress() {
+  const status = document.getElementById("check-status");
+  if (status) status.textContent = checkSummary();
+}
+
+function checkBar() {
+  const running = isCheckRunning();
+  return el("div", { class: "check-bar" },
+    el("button", {
+      type: "button",
+      id: "check-instances",
+      class: "button button-primary",
+      disabled: running,
+      onclick: (event) => {
+        event.target.disabled = true;
+        event.target.textContent = "Checking…";
+        chrome.runtime.sendMessage({ type: "checkInstances" }).catch((error) => console.error("Error starting check:", error));
+      }
+    }, running ? "Checking…" : "Check instances"),
+    el("p", { class: "row-sub", id: "check-status", role: "status" }, checkSummary()));
 }
 
 function renderInstances(container, focusService) {
@@ -318,7 +395,7 @@ function renderInstances(container, focusService) {
 
   const totalHosts = new Set([
     ...Object.values(INSTANCES).flat(),
-    ...Object.values(FARSIDE_ARCHIVE).flat(),
+    ...Object.values(KNOWN_INSTANCES).flat(),
     ...Object.values(settings.addedInstances).flat()
   ]).size;
 
@@ -327,27 +404,38 @@ function renderInstances(container, focusService) {
   const empty = el("p", { class: "empty", hidden: true }, "No instance matches that search.");
 
   const groups = PROJECTS.map((project) => {
-    const added = settings.addedInstances[project.service] ?? [];
-    const checked = (INSTANCES[project.service] ?? []).filter((url) => !added.includes(url));
-    const archived = (FARSIDE_ARCHIVE[project.service] ?? []).filter((url) => !added.includes(url) && !checked.includes(url));
-    const chosen = settings.customInstances[project.service];
-    const chosenElsewhere = chosen && ![...added, ...checked, ...archived].includes(chosen);
+    const key = defaultKeyFor(project);
+    const current = defaultInstance(key, settings);
+    const own = settings.addedInstances[project.service] ?? [];
+    const showsDefault = current && projectShowingDefault(key, current) === project;
 
-    const rows = [
-      ...added.map((url) => instanceRow(project, url, "added")),
-      ...(chosenElsewhere ? [instanceRow(project, chosen, "added")] : []),
-      ...checked.map((url) => instanceRow(project, url, "checked"))
-    ];
+    const rows = own.map((url) => instanceRow(project, url, { isOwn: true, isDefault: showsDefault && url === current }));
+    if (showsDefault && !own.includes(current)) rows.unshift(instanceRow(project, current, { isDefault: true }));
 
-    const archive = archived.length
-      ? el("details", { class: "archive" },
-        el("summary", {}, `${archived.length} more from the ${FARSIDE_ARCHIVE_DATE} archive`),
-        el("ul", { class: "host-list" }, ...archived.map((url) => instanceRow(project, url, "archive"))))
+    const rest = knownHosts(project)
+      .filter((url) => !showsDefault || url !== current)
+      .sort((a, b) => hostRank(a) - hostRank(b));
+    const liveCount = rest.filter((url) => settings.check.results?.[url] === true).length;
+
+    const more = rest.length
+      ? el("details", {
+        class: "more-hosts",
+        ontoggle: (event) => {
+          if (instanceQuery.trim()) return;
+          if (event.target.open) {
+            openLists.add(project.service);
+          } else {
+            openLists.delete(project.service);
+          }
+        }
+      },
+      el("summary", {}, `Show ${rest.length} ${rows.length ? "more" : rest.length === 1 ? "host" : "hosts"}${liveCount ? `, ${liveCount} live` : ""}`),
+      el("ul", { class: "host-list" }, ...rest.map((url) => instanceRow(project, url))))
       : null;
 
     const formOpen = openForms.has(project.service);
 
-    return el("section", { class: "service", "data-name": `${project.name} ${project.replaces}`.toLowerCase() },
+    return el("section", { class: "service", "data-service": project.service, "data-name": `${project.name} ${project.replaces}`.toLowerCase() },
       el("div", { class: "service-head" },
         el("h3", {}, project.name),
         el("span", { class: "row-sub" }, project.replaces),
@@ -369,9 +457,9 @@ function renderInstances(container, focusService) {
       formOpen
         ? addInstanceForm({ id: `add-${project.service}`, label: `Address of your ${project.name} instance`, service: project.service })
         : null,
-      !rows.length && !archive && !formOpen ? el("p", { class: "empty" }, "No host listed. Add one if you run or know of an instance.") : null,
-      el("ul", { class: "host-list" }, ...rows),
-      archive);
+      !rows.length && !more && !formOpen ? el("p", { class: "empty" }, "No host listed. Add one if you run or know of an instance.") : null,
+      rows.length ? el("ul", { class: "host-list" }, ...rows) : null,
+      more);
   });
 
   const list = el("div", { class: "panel" }, ...groups);
@@ -388,13 +476,8 @@ function renderInstances(container, focusService) {
         row.hidden = !visible;
         if (visible) matches++;
       });
-      const archive = group.querySelector("details");
-      if (archive) {
-        // A chosen default stays in view, so "Stop using" isn't hidden after the screen redraws
-        const holdsDefault = [...archive.querySelectorAll(".host")].some((link) =>
-          Object.values(settings.customInstances).includes(link.getAttribute("href")));
-        archive.open = holdsDefault || (Boolean(query) && matches > 0);
-      }
+      const more = group.querySelector("details");
+      if (more) more.open = query ? matches > 0 : openLists.has(group.dataset.service);
       group.hidden = Boolean(query) && !nameMatches && matches === 0;
       shown += matches;
     });
@@ -406,16 +489,17 @@ function renderInstances(container, focusService) {
   applyFilter();
 
   container.append(
-    pageHeader("Instances", `Static lists, not live status. Checked means the page loaded on ${CHECK_DATE}; Archive hosts are unchecked. Add as many of your own as you like: a site with instances of yours uses only those.`),
-    el("h2", {}, "Sources"),
-    sources,
+    pageHeader("Instances", "Each project shows the host it uses now. Live means a server answered, not that its pages work. Add as many of your own as you like: a site with instances of yours uses only those."),
+    checkBar(),
     el("h2", {}, "All instances"),
     el("div", { class: "field" },
       el("label", { for: "instance-filter" }, "Filter by project or host"),
       filter,
       count),
     empty,
-    list);
+    list,
+    el("h2", {}, "Sources"),
+    sources);
 
   if (focusService) container.querySelector(`#add-${CSS.escape(focusService)}`)?.focus();
 }

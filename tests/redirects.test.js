@@ -2,18 +2,21 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { FARSIDE_ARCHIVE } from "../archive.js";
+import { checkAll, hostsToCheck, isLive } from "../checker.js";
 import { INSTANCE_NOTES, PROJECTS, SOURCES } from "../catalog.js";
+import { KNOWN_INSTANCES } from "../directory.js";
 import {
   INSTANCES,
   NAVIGATION_FILTER,
   SITES,
   addedFor,
+  defaultInstance,
   failoverFilter,
   getRedirect,
   hasInstances,
   instancePool,
   isSiteEnabled,
+  overlayNetwork,
   parseInstanceUrl,
   pickInstance
 } from "../redirects.js";
@@ -150,8 +153,8 @@ test("several added instances replace the public list and fail over among themse
     assert.ok(mine.includes(redirect.instance), "never a public host");
     assert.equal(redirect.pinned, false);
   }
-  assert.equal(pickInstance("invidious", ["https://a.example"], added), "https://b.example");
-  assert.equal(pickInstance("invidious", mine, added), null, "no public fallback");
+  assert.equal(pickInstance("invidious", ["https://a.example"], { addedInstances: added }), "https://b.example");
+  assert.equal(pickInstance("invidious", mine, { addedInstances: added }), null, "no public fallback");
 });
 
 test("an instance of any frontend serves its site", () => {
@@ -196,20 +199,96 @@ test("parseInstanceUrl accepts what people type and explains what it refuses", (
   }
 });
 
-test("archive.js matches the saved snapshot exactly", () => {
-  const md = readFileSync(new URL("../data/farside-snapshot-2026-07-19.md", import.meta.url), "utf8");
-  const parsed = {};
-  let current = null;
-  for (const line of md.split("\n")) {
-    const service = line.match(/^\* \[([^\]]+)\]/);
-    if (service) {
-      current = service[1];
-      parsed[current] = [];
+test("directory.js holds every host in the saved Farside files, including fallbacks", () => {
+  const read = (name) => readFileSync(new URL(`../data/${name}`, import.meta.url), "utf8");
+  const expected = {};
+  const add = (service, url) => {
+    expected[service] ??= new Set();
+    if (url) expected[service].add(url.split("|")[0].replace(/\/+$/, ""));
+  };
+
+  for (const file of ["farside-services-full-af08778f3c.json", "farside-services-af08778f3c.json"]) {
+    for (const entry of JSON.parse(read(file))) {
+      add(entry.type);
+      [entry.fallback, ...entry.instances].forEach((url) => add(entry.type, url));
     }
-    const host = line.match(/^\s+\* (https:\/\/\S+)/);
-    if (host) parsed[current].push(host[1]);
   }
-  assert.deepEqual(FARSIDE_ARCHIVE, parsed);
+  let current = null;
+  for (const line of read("farside-snapshot-2026-07-19.md").split("\n")) {
+    current = line.match(/^\* \[([^\]]+)\]/)?.[1] ?? current;
+    const host = line.match(/^\s+\* (https:\/\/\S+)/);
+    if (host) add(current, host[1]);
+  }
+
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(KNOWN_INSTANCES).map(([service, hosts]) => [service, [...hosts].sort()])),
+    Object.fromEntries(Object.entries(expected).map(([service, hosts]) => [service, [...hosts].sort()]))
+  );
+  assert.ok(KNOWN_INSTANCES.piped.includes("https://piped.ducks.party"), "Piped keeps the frontend, not the API");
+  assert.ok(!Object.values(KNOWN_INSTANCES).flat().some((url) => url.includes("|")));
+});
+
+test("each install has one default, and installs spread across the list", () => {
+  const pool = INSTANCES.rimgo;
+  const seen = new Set();
+  for (let seed = 0; seed < pool.length; seed++) {
+    const prefs = { seed };
+    const first = defaultInstance("rimgo", prefs);
+    assert.equal(first, defaultInstance("rimgo", prefs), "stable for an install");
+    assert.equal(getRedirect("https://imgur.com/a", {}, prefs).instance, first, "the default is what redirects use");
+    seen.add(first);
+  }
+  assert.equal(seen.size, pool.length);
+});
+
+test("failover from a default still reaches every host once", () => {
+  const prefs = { seed: 3 };
+  const tried = [];
+  for (let next = pickInstance("rimgo", tried, prefs); next; next = pickInstance("rimgo", tried, prefs)) {
+    tried.push(next);
+  }
+  assert.deepEqual([...tried].sort(), [...INSTANCES.rimgo].sort());
+});
+
+test("added instances and a chosen host win over the install's default", () => {
+  const added = { addedInstances: { rimgo: ["https://b.example", "https://a.example"] }, seed: 5 };
+  assert.equal(defaultInstance("rimgo", added), "https://b.example", "first added, in the order added");
+  assert.equal(defaultInstance("rimgo", { ...added, customInstances: { rimgo: "https://c.example" } }), "https://c.example");
+  assert.equal(defaultInstance("proxitok", { seed: 5 }), null);
+});
+
+test("the check skips overlay hosts and includes added ones", () => {
+  assert.equal(overlayNetwork("http://abc.onion"), "Tor only");
+  assert.equal(overlayNetwork("https://inv.nadeko.ygg"), "Yggdrasil only");
+  assert.equal(overlayNetwork("https://nitter.net"), null);
+
+  const hosts = hostsToCheck({ redlib: ["https://mine.example"] });
+  assert.ok(hosts.includes("https://mine.example"));
+  assert.ok(hosts.includes("https://redlib.freedit.eu"), "fallbacks are checked");
+  assert.ok(!hosts.some((url) => overlayNetwork(url)));
+  assert.equal(new Set(hosts).size, hosts.length);
+});
+
+test("isLive reports whether a server answered, without sending anything personal", async () => {
+  let options;
+  assert.equal(await isLive("https://a.example", async (_, opts) => { options = opts; return {}; }), true);
+  assert.equal(options.mode, "no-cors");
+  assert.equal(options.credentials, "omit");
+  assert.equal(options.referrerPolicy, "no-referrer");
+  assert.equal(await isLive("https://b.example", async () => { throw new TypeError("Failed to fetch"); }), false);
+});
+
+test("checkAll answers for every host and reports progress", async () => {
+  const hosts = Array.from({ length: 40 }, (_, i) => `https://h${i}.example`);
+  const progress = [];
+  const results = await checkAll(hosts, (done) => progress.push(done), async (url) => {
+    if (url.endsWith("7.example")) throw new TypeError("Failed to fetch");
+    return {};
+  });
+  assert.equal(Object.keys(results).length, 40);
+  assert.equal(results["https://h7.example"], false);
+  assert.equal(results["https://h8.example"], true);
+  assert.equal(progress.at(-1), 40);
 });
 
 test("catalog covers everything the UI looks up", () => {
@@ -220,8 +299,8 @@ test("catalog covers everything the UI looks up", () => {
     assert.ok(services.includes(site.service), `${site.name} has a project`);
     assert.ok(PROJECTS.some((project) => project.replaces === site.name), `${site.name} has a group`);
   }
-  for (const service of Object.keys(FARSIDE_ARCHIVE)) {
-    assert.ok(services.includes(service), `archive service ${service} is listed`);
+  for (const service of Object.keys(KNOWN_INSTANCES)) {
+    assert.ok(services.includes(service), `known service ${service} is listed`);
   }
   for (const url of [...PROJECTS.map((project) => project.repo), ...SOURCES.map((source) => source.url)]) {
     assert.ok(url.startsWith("https://"), url);

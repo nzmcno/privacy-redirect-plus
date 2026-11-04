@@ -1,0 +1,488 @@
+[
+  {
+    "type": "libreddit",
+    "test_url": "/r/popular",
+    "fallback": "https://redlib.freedit.eu",
+    "instances": [
+      "https://red.artemislena.eu",
+      "https://redlib.catsarch.com",
+      "https://redlib.cow.rip",
+      "https://redlib.nadeko.net",
+      "https://redlib.privacyredirect.com",
+      "https://redlib.privadency.com",
+      "https://safereddit.com"
+    ]
+  },
+  {
+    "type": "redlib",
+    "test_url": "/r/popular",
+    "fallback": "https://redlib.freedit.eu",
+    "instances": [
+      "https://red.artemislena.eu",
+      "https://redlib.catsarch.com",
+      "https://redlib.cow.rip",
+      "https://redlib.nadeko.net",
+      "https://redlib.privacyredirect.com",
+      "https://redlib.privadency.com",
+      "https://safereddit.com"
+    ]
+  },
+  {
+    "type": "teddit",
+    "test_url": "/r/popular",
+    "fallback": "https://teddit.net",
+    "instances": [
+      "https://i.opnxng.com",
+      "https://rdt.trom.tf",
+      "https://reddit.lol",
+      "https://snoo.ioens.is",
+      "https://t.sneed.network",
+      "https://td.vern.cc",
+      "https://teddit.adminforge.de",
+      "https://teddit.bus-hit.me",
+      "https://teddit.domain.glass",
+      "https://teddit.froth.zone",
+      "https://teddit.garudalinux.org",
+      "https://teddit.ggc-project.de",
+      "https://teddit.hostux.net",
+      "https://teddit.httpjames.space",
+      "https://teddit.laserdisc.tokyo",
+      "https://teddit.net",
+      "https://teddit.no-logs.com",
+      "https://teddit.privacytools.io",
+      "https://teddit.projectsegfau.lt",
+      "https://teddit.pussthecat.org",
+      "https://teddit.rawbit.ninja",
+      "https://teddit.sethforprivacy.com",
+      "https://teddit.tinfoil-hat.net",
+      "https://teddit.tokhmi.xyz",
+      "https://teddit.xbdm.fun",
+      "https://teddit.zaggy.nl"
+    ]
+  },
+  {
+    "type": "proxigram",
+    "test_url": "/p/Ch2WRmiLMjj",
+    "fallback": "https://ig.opnxng.com",
+    "instances": [
+      "https://ig.opnxng.com",
+      "https://proxigram.lunar.icu",
+      "https://gram.whatever.social",
+      "https://ig.snine.nl",
+      "https://ig.floppa.one",
+      "https://proxigram.kyun.li"
+    ]
+  },
+  {
+    "type": "invidious",
+    "test_url": "/watch?v=eBGIQ7ZuuiU",
+    "fallback": "https://invidious.snopyta.org",
+    "instances": [
+      "https://inv-ygg.nadeko.net",
+      "https://inv.nadeko.net",
+      "https://inv.nadeko.ygg",
+      "https://invidious.f5.si",
+      "https://invidious.nerdvpn.de",
+      "https://invidious.tiekoetter.com",
+      "https://yt.chocolatemoo53.com"
+    ]
+  },
+  {
+    "type": "piped",
+    "test_url": "/watch?v=dQw4w9WgXcQ|/streams/dQw4w9WgXcQ",
+    "fallback": "https://piped.video",
+    "instances": [
+      "https://piped.video|https://pipedapi.kavin.rocks",
+      "https://piped.tokhmi.xyz|https://pipedapi.tokhmi.xyz",
+      "https://piped.moomoo.me|https://pipedapi.moomoo.me",
+      "https://piped.mha.fi|https://api-piped.mha.fi",
+      "https://efy.piped.pages.dev|https://pipedapi.aeong.one",
+      "https://watch.whatever.social|https://watchapi.whatever.social",
+      "https://piped.garudalinux.org|https://piped-api.garudalinux.org",
+      "https://watch.leptons.xyz|https://pipedapi.leptons.xyz",
+      "https://piped.lunar.icu|https://piped-api.lunar.icu",
+      "https://piped.projectsegfau.lt|https://api.piped.projectsegfau.lt",
+      "https://piped.privacydev.net|https://api.piped.privacydev.net",
+      "https://piped.smnz.de|https://pipedapi.smnz.de",
+      "https://piped.adminforge.de|https://pipedapi.adminforge.de",
+      "https://piped.qdi.fi|https://pipedapi.qdi.fi",
+      "https://piped.hostux.net|https://piped-api.hostux.net",
+      "https://pd.vern.cc|https://pdapi.vern.cc",
+      "https://piped.colinslegacy.com|https://pipedapi.colinslegacy.com",
+      "https://piped.ducks.party|https://pipedapi.ducks.party"
+    ]
+  },
+  {
+    "type": "nitter",
+    "test_url": "/jack/status/20",
+    "fallback": "https://nitter.net",
+    "instances": [
+      "https://lightbrd.com",
+      "https://nitter.catsarch.com",
+      "https://nitter.kareem.one",
+      "https://nitter.net",
+      "https://nitter.poast.org",
+      "https://nitter.space",
+      "https://nitter.tiekoetter.com",
+      "https://nuku.trabun.org",
+      "https://xcancel.com"
+    ]
+  },
+  {
+    "type": "scribe",
+    "test_url": "/@ftrain/big-data-small-effort-b62607a43a8c",
+    "fallback": "https://scribe.rip",
+    "instances": [
+      "https://scribe.nixnet.services",
+      "https://scribe.rawbit.ninja",
+      "https://sc.vern.cc",
+      "https://m.opnxng.com",
+      "https://scribe.r4fo.com",
+      "https://scribe.privacyredirect.com"
+    ]
+  },
+  {
+    "type": "simplytranslate",
+    "test_url": "/?engine=google&text=simplicado",
+    "fallback": "https://simplytranslate.org",
+    "instances": [
+      "https://simplytranslate.esmailelbob.xyz",
+      "https://simplytranslate.leemoon.network",
+      "https://simplytranslate.manerakai.com",
+      "https://simplytranslate.org",
+      "https://simplytranslate.pussthecat.org",
+      "https://st.odyssey346.dev",
+      "https://st.privacydev.net",
+      "https://st.tokhmi.xyz",
+      "https://tl.vern.cc",
+      "https://translate.bus-hit.me",
+      "https://translate.josias.dev",
+      "https://translate.northboot.xyz",
+      "https://translate.priv.pw",
+      "https://translate.riverside.rocks",
+      "https://translate.slipfox.xyz",
+      "https://translate.tiekoetter.com"
+    ]
+  },
+  {
+    "type": "lingva",
+    "test_url": "/auto/en/hola",
+    "fallback": "https://lingva.ml",
+    "instances": [
+      "https://lingva.ml",
+      "https://lingva.garudalinux.org",
+      "https://lingva.frontendfriendly.xyz",
+      "https://lingva.retiolus.net",
+      "https://translate.plausibility.cloud",
+      "https://lingva.lunar.icu",
+      "https://translate.dr460nf1r3.org",
+      "https://translate.whateveritworks.org",
+      "https://translate.sapti.me",
+      "https://lingva.fuk.world",
+      "https://translate.colinslegacy.com",
+      "https://translate.catswords.net"
+    ]
+  },
+  {
+    "type": "rimgo",
+    "test_url": "/a/H8M4rcp",
+    "fallback": "https://rimgo.projectsegfau.lt",
+    "instances": [
+      "https://anaimg.starbeamrainbowlabs.com",
+      "https://imgur.artemislena.eu",
+      "https://imgur.nerdvpn.de",
+      "https://r.opnxng.com",
+      "https://rg.kuuro.net",
+      "https://ri.bcow.xyz",
+      "https://ri.nadeko.net",
+      "https://rimgo.4o1x5.dev",
+      "https://rimgo.aketawi.space",
+      "https://rimgo.astrial.org",
+      "https://rimgo.bloat.cat",
+      "https://rimgo.canine.tools",
+      "https://rimgo.catsarch.com",
+      "https://rimgo.darkness.services",
+      "https://rimgo.ducks.party",
+      "https://rimgo.hostux.net",
+      "https://rimgo.manerakai.com",
+      "https://rimgo.nohost.network",
+      "https://rimgo.privacyredirect.com",
+      "https://rimgo.proxik.cloud",
+      "https://rimgo.pussthecat.org",
+      "https://rimgo.reallyaweso.me",
+      "https://rimgo.wuemeli.com",
+      "https://rmgur.com"
+    ]
+  },
+  {
+    "type": "whoogle",
+    "test_url": "/search?cookies_disabled=1&q=<%=query%>",
+    "fallback": "https://search.sethforprivacy.com",
+    "instances": [
+      "https://search.garudalinux.org",
+      "https://search.sethforprivacy.com",
+      "https://wg.vern.cc",
+      "https://whoogle.4040940.xyz",
+      "https://whoogle.lunar.icu",
+      "https://whoogle.privacydev.net"
+    ]
+  },
+  {
+    "type": "searx",
+    "test_url": "/search?q=<%=query%>",
+    "fallback": "https://searx.be",
+    "instances": [
+      "https://search.stinpriza.org",
+      "https://searx.dresden.network",
+      "https://searx.gnu.style",
+      "https://searx.mastodontech.de",
+      "https://searx.mxchange.org",
+      "https://searx.nixnet.services",
+      "https://searx.roflcopter.fr",
+      "https://searx.ru",
+      "https://searx.zapashcanon.fr"
+    ]
+  },
+  {
+    "type": "searxng",
+    "test_url": "/search?q=<%=query%>",
+    "fallback": "https://searx.be",
+    "instances": []
+  },
+  {
+    "type": "wikiless",
+    "test_url": "/wiki/Wikipedia?lang=en",
+    "fallback": "https://wikiless.org",
+    "instances": [
+      "https://wiki.owo.si",
+      "https://wiki.adminforge.de",
+      "https://wiki.froth.zone",
+      "https://wiki.privacytools.io",
+      "https://wikiless.esmailelbob.xyz",
+      "https://wikiless.funami.tech",
+      "https://wikiless.lunar.icu",
+      "https://wikiless.northboot.xyz",
+      "https://wikiless.org",
+      "https://wikiless.rawbit.ninja",
+      "https://wikiless.sethforprivacy.com",
+      "https://wikiless.tiekoetter.com",
+      "https://wl.vern.cc"
+    ]
+  },
+  {
+    "type": "librarian",
+    "test_url": "",
+    "fallback": "https://lbry.bcow.xyz",
+    "instances": [
+      "https://lbry.bcow.xyz",
+      "https://odysee.076.ne.jp",
+      "https://librarian.pussthecat.org",
+      "https://lbry.mutahar.rocks",
+      "https://librarian.esmailelbob.xyz",
+      "https://lbry.vern.cc"
+    ]
+  },
+  {
+    "type": "proxitok",
+    "test_url": "/discover",
+    "fallback": "https://proxitok.pabloferreiro.es",
+    "instances": [
+      "https://proxitok.pabloferreiro.es",
+      "https://proxitok.pussthecat.org",
+      "https://proxitok.privacydev.net",
+      "https://tok.habedieeh.re",
+      "https://proxitok.esmailelbob.xyz",
+      "https://tok.artemislena.eu",
+      "https://tok.adminforge.de",
+      "https://tik.hostux.net",
+      "https://proxitok.lunar.icu",
+      "https://proxitok.privacy.com.de",
+      "https://tiktok.chauvet.pro",
+      "https://cringe.whateveritworks.org"
+    ]
+  },
+  {
+    "type": "quetre",
+    "test_url": "/How-does-the-Z-boson-decay",
+    "fallback": "https://quetre.iket.me",
+    "instances": [
+      "https://quetre.iket.me",
+      "https://quora.vern.cc",
+      "https://quetre.pussthecat.org",
+      "https://quetre.tokhmi.xyz",
+      "https://quetre.projectsegfau.lt",
+      "https://quetre.esmailelbob.xyz",
+      "https://quetre.privacydev.net",
+      "https://ask.habedieeh.re",
+      "https://quetre.marcopisco.com",
+      "https://quetre.blackdrgn.nl",
+      "https://quetre.pufe.org",
+      "https://quetre.lunar.icu",
+      "https://que.wilbvr.me",
+      "https://questions.whateveritworks.org",
+      "https://quetre.fascinated.cc",
+      "https://quetre.frontendfriendly.xyz",
+      "https://quetre.ducks.party"
+    ]
+  },
+  {
+    "type": "libremdb",
+    "test_url": "/title/tt0133093",
+    "fallback": "https://libremdb.herokuapp.com",
+    "instances": [
+      "https://libremdb.herokuapp.com",
+      "https://libremdb.pussthecat.org",
+      "https://libremdbeu.herokuapp.com",
+      "https://libremdb.esmailelbob.xyz",
+      "https://libremdb.iket.me",
+      "https://ld.vern.cc",
+      "https://binge.whatever.social",
+      "https://binge.whateveritworks.social",
+      "https://libremdb.lunar.icu",
+      "https://lmdb.hostux.net",
+      "https://libremdb.nerdyfam.tech",
+      "https://libremdb.fascinated.cc",
+      "https://libremdb.catsarch.com",
+      "https://libremdb.frontendfriendly.xyz",
+      "https://libremdb.ducks.party"
+    ]
+  },
+  {
+    "type": "dumb",
+    "test_url": "/Naughty-boy-la-la-la-lyrics",
+    "fallback": "https://dumb.privacydev.net",
+    "instances": [
+      "https://dumb.privacydev.net",
+      "https://dm.vern.cc",
+      "https://sing.whatever.social",
+      "https://dumb.nunosempere.com",
+      "https://dumb.lunar.icu",
+      "https://dumb.esmailelbob.xyz",
+      "https://dumb.ducks.party"
+    ]
+  },
+  {
+    "type": "breezewiki",
+    "test_url": "/balatrogame/wiki/Abandoned_Deck",
+    "fallback": "https://breezewiki.com",
+    "instances": [
+      "https://breezewiki.com",
+      "https://antifandom.com",
+      "https://breezewiki.pussthecat.org",
+      "https://breeze.mint.lgbt",
+      "https://z.opnxng.com",
+      "https://breezewiki.moonshadow.dev",
+      "https://breezewiki.woodland.cafe",
+      "https://breezewiki.nadeko.net",
+      "https://fandom.reallyaweso.me",
+      "https://breezewiki.r4fo.com",
+      "https://bw.artemislena.eu",
+      "https://breeze.hostux.net",
+      "https://breezewiki.private.coffee",
+      "http://breezewiki.nadekonfkhwlxwwk4ycbvq42zvcjmvo5iakl4tajojjwxd4a5dcetuyd.onion",
+      "http://breezewiki.r4focoma7gu2zdwwcjjad47ysxt634lg73sxmdbkdozanwqslho5ohyd.onion",
+      "http://breezewiki.coffee2m3bjsrrqqycx6ghkxrnejl2q6nl7pjw2j4clchjj6uk5zozad.onion"
+    ]
+  },
+  {
+    "type": "gothub",
+    "test_url": "/benbusby/farside",
+    "fallback": "https://gothub.projectsegfau.lt",
+    "instances": [
+      "https://gothub.lunar.icu",
+      "https://gothub.r4fo.com",
+      "https://gothub.dev.projectsegfau.lt",
+      "https://gothub.projectsegfau.lt",
+      "https://gothub.libre.tw",
+      "https://gothub.wuemeli.com"
+    ]
+  },
+  {
+    "type": "anonymousoverflow",
+    "test_url": "/questions/6591213/how-do-i-rename-a-local-git-branch",
+    "fallback": "https://code.whatever.social",
+    "instances": [
+      "https://ao.owo.si",
+      "https://code.whatever.social",
+      "https://ao.vern.cc",
+      "https://overflow.smnz.de",
+      "https://overflow.lunar.icu",
+      "https://overflow.adminforge.de",
+      "https://overflow.hostux.net",
+      "https://overflow.projectsegfau.lt",
+      "https://code.xbdm.fun",
+      "https://overflow.fascinated.cc",
+      "https://ao.bloatcat.tk",
+      "https://anonoverflow.frontendfriendly.xyz",
+      "https://overflow.ducks.party",
+      "https://anonymousoverflow.catsarch.com"
+    ]
+  },
+  {
+    "type": "4get",
+    "test_url": "/ami4get",
+    "fallback": "https://4get.ca",
+    "instances": [
+      "https://4g.ggtyler.dev",
+      "https://4g.opnxng.com",
+      "https://4get.ca",
+      "https://4get.dcs0.hu",
+      "https://4get.etenie.pl",
+      "https://4get.hbubli.cc",
+      "https://4get.kizuki.lol",
+      "https://4get.konakona.moe",
+      "https://4get.lunar.icu",
+      "https://4get.lvkaszus.pl",
+      "https://4get.perennialte.ch",
+      "https://4get.plunked.party",
+      "https://4get.psily.garden",
+      "https://4get.seitan-ayoub.lol",
+      "https://4get.sijh.net",
+      "https://4get.silly.computer",
+      "https://4get.zzls.xyz",
+      "https://4getus.zzls.xyz",
+      "https://4get.ducks.party",
+      "https://s.futureofthe.tech"
+    ]
+  },
+  {
+    "type": "librey",
+    "test_url": "/search.php?q=<%=query%>",
+    "fallback": "https://search.ahwx.org",
+    "instances": [
+      "https://librex.nohost.network",
+      "https://librey.4o1x5.dev",
+      "https://librey.baczek.me",
+      "https://librey.darkness.services",
+      "https://librey.nube-gran.de",
+      "https://librey.org",
+      "https://ly.owo.si",
+      "https://search.blitzw.in",
+      "https://search.davidovski.xyz",
+      "https://search.funami.tech",
+      "https://search.liv.town",
+      "https://search.revvy.de",
+      "https://search.technicalvoid.dev",
+      "https://search.uwabaki.party",
+      "https://serp.catswords.net"
+    ]
+  },
+  {
+    "type": "tent",
+    "test_url": "/search.php?query=<%=query%>",
+    "fallback": "https://tent.sny.sh",
+    "instances": [
+      "https://bandcamp.lurkmore.com",
+      "https://tent.bloat.cat",
+      "https://tent.canine.tools",
+      "https://tent.deep-swarm.xyz",
+      "https://tent.lab8.cz",
+      "https://tent.nbh.ax",
+      "https://tent.private.coffee",
+      "https://tent.sny.sh",
+      "https://tn.dc09.ru",
+      "https://tn.maid.zone",
+      "https://tn.vern.cc"
+    ]
+  }
+]
