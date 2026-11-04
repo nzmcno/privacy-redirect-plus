@@ -1,6 +1,8 @@
 // redirects.js
 // Site definitions and redirect logic shared by the service worker, popup and options page
 
+import { PROJECTS } from "./catalog.js";
+
 // farside.link shut down in August 2026 and its repository is archived, so its list no longer changes.
 // These hosts come from its final services.json (benbusby/farside@af08778f3c), minus the ones that were
 // unreachable or broken when checked on 2026-11-04. Two exceptions: dumb had no working host there, so its
@@ -45,6 +47,7 @@ export const INSTANCES = {
     "https://tn.maid.zone"
   ],
   gothub: ["https://gothub.projectsegfau.lt"],
+  librarian: [],
   whoogle: ["https://search.sethforprivacy.com"],
   searxng: [
     "https://searx.be",
@@ -87,24 +90,9 @@ export const SITES = [
   { name: "Fandom", service: "breezewiki", hosts: ["fandom.com", "www.fandom.com"] },
   { name: "Genius", service: "dumb", hosts: ["genius.com", "www.genius.com"] },
   { name: "Bandcamp", service: "tent", hosts: ["bandcamp.com", "www.bandcamp.com"] },
-  { name: "GitHub", service: "gothub", hosts: ["github.com", "www.github.com"] }
+  { name: "GitHub", service: "gothub", hosts: ["github.com", "www.github.com"] },
+  { name: "Odysee", service: "librarian", hosts: ["odysee.com", "www.odysee.com"] }
 ];
-
-// Services organized by category for the Quick Access tabs
-export const CATEGORIZED_QUICK_LINKS = {
-  "Search": ["whoogle", "searxng", "4get", "librey"],
-  "Google Translate": ["simplytranslate", "lingva"],
-  "YouTube": ["invidious"],
-  "Twitter": ["nitter"],
-  "Reddit": ["redlib"],
-  "Wikipedia": ["wikiless"],
-  "GitHub": ["gothub"],
-  "Medium": ["scribe"],
-  "Imgur": ["rimgo"],
-  "Fandom": ["breezewiki"],
-  "Genius": ["dumb"],
-  "Bandcamp": ["tent"]
-};
 
 const FANDOM_WIKI_HOST = /^([^.]+)\.fandom\.com$/;
 const FANDOM_WIKI_PATH = /^\/([a-z-]+\/)?wiki\//;
@@ -119,13 +107,31 @@ export const NAVIGATION_FILTER = {
   ]
 };
 
-export const INSTANCE_FILTER = {
-  url: Object.values(INSTANCES).flat().map((instance) => ({ hostEquals: new URL(instance).hostname }))
-};
+// Every host a redirect can land on, for spotting one that fails
+export function failoverFilter(addedInstances = {}) {
+  const instances = [...Object.values(INSTANCES).flat(), ...Object.values(addedInstances).flat()];
+  return { url: instances.map((instance) => ({ hostEquals: new URL(instance).hostname })) };
+}
 
-// customInstances maps a service to the instance the user chose as its default
-export function hasInstances(site, customInstances = {}) {
-  return Boolean(customInstances[site.service]) || INSTANCES[site.service].length > 0;
+// The instances the user added for a service. For a site's main service this includes every
+// frontend of that site, so a Piped instance serves YouTube alongside an Invidious one.
+export function addedFor(service, addedInstances = {}) {
+  const site = SITES.find((candidate) => candidate.service === service);
+  const services = site
+    ? PROJECTS.filter((project) => project.replaces === site.name).map((project) => project.service)
+    : [service];
+  return services.flatMap((name) => addedInstances[name] ?? []);
+}
+
+// Once a service has instances of the user's, those replace the public list rather than join it
+export function instancePool(service, addedInstances = {}) {
+  const added = addedFor(service, addedInstances);
+  return added.length ? added : INSTANCES[service] ?? [];
+}
+
+// prefs holds customInstances, one chosen default per service, and addedInstances, a list per service
+export function hasInstances(site, prefs = {}) {
+  return Boolean(prefs.customInstances?.[site.service]) || instancePool(site.service, prefs.addedInstances).length > 0;
 }
 
 // Only an empty string disables a site. Older versions also stored farside.link URLs here when a
@@ -135,8 +141,8 @@ export function isSiteEnabled(site, customMap) {
 }
 
 // Picks a random host for the service, skipping any that have already failed
-export function pickInstance(service, exclude = []) {
-  const candidates = INSTANCES[service].filter((instance) => !exclude.includes(instance));
+export function pickInstance(service, exclude = [], addedInstances = {}) {
+  const candidates = instancePool(service, addedInstances).filter((instance) => !exclude.includes(instance));
   return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
 }
 
@@ -153,14 +159,14 @@ function findTarget(url) {
 }
 
 // Returns where a navigation should go, or null if it should be left alone.
-// "pinned" means the user chose this instance, so a failure must not fall back to a public one.
-export function getRedirect(rawUrl, customMap, customInstances = {}) {
+// "pinned" means the user chose this one instance, so a failure must not move on to another.
+export function getRedirect(rawUrl, customMap, prefs = {}) {
   const url = new URL(rawUrl);
   const target = findTarget(url);
   if (!target || !isSiteEnabled(target.site, customMap)) return null;
 
-  const pinned = customInstances[target.site.service];
-  const instance = pinned ?? pickInstance(target.site.service);
+  const pinned = prefs.customInstances?.[target.site.service];
+  const instance = pinned ?? pickInstance(target.site.service, [], prefs.addedInstances);
   if (!instance) return null;
 
   return {

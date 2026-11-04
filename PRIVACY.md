@@ -18,7 +18,7 @@ PrivacyRedirect+ is committed to protecting your privacy. This Privacy Policy ex
 
 ### Information We DO Collect:
 
-- **Settings**: Your preferences (which sites to redirect, and the address of any instance you chose as a default) are stored using Chrome's sync storage. We never receive them. If Chrome Sync is turned on, Chrome syncs them across your devices through your Google account.
+- **Settings**: Your preferences (which sites to redirect, and the addresses of any instances you added or chose as a default) are stored using Chrome's sync storage. We never receive them. If Chrome Sync is turned on, Chrome syncs them across your devices through your Google account.
 
 ## How Your Information Is Used
 
@@ -50,7 +50,7 @@ When you visit a site with its redirect turned on, PrivacyRedirect+ sends you to
 You have complete control over the extension:
 
 - Choose which specific sites to redirect
-- Send a site to an instance you run yourself instead of a public one
+- Send a site to instances you run yourself instead of public ones
 - Uninstall the extension at any time to remove all stored preferences
 
 ## Security

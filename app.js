@@ -1,7 +1,7 @@
 // app.js
 // Tab switching and rendering for the popup and the options page
 
-import { VIEWS, isEditingInstance, loadSettings } from "./ui.js";
+import { VIEWS, clearStamps, isEditingInstance, loadSettings } from "./ui.js";
 
 const main = document.getElementById("view");
 const tabs = [...document.querySelectorAll("[data-view]")];
@@ -9,12 +9,13 @@ const tabs = [...document.querySelectorAll("[data-view]")];
 let currentView = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : "sites";
 
 function render(focusService) {
-  // Put focus back after a re-render, so keyboard users stay on the control they just used
+  // Put focus and scroll back after a re-render, so people stay on the control they just used
   const focusedId = document.activeElement?.id;
   const scrollTop = main.scrollTop;
 
   main.replaceChildren();
   VIEWS[currentView](main, navigate, focusService);
+  clearStamps();
 
   tabs.forEach((tab) => {
     if (tab.dataset.view === currentView) {
@@ -24,7 +25,8 @@ function render(focusService) {
     }
   });
 
-  if (!focusService && focusedId) document.getElementById(focusedId)?.focus();
+  if (focusService) return;
+  if (focusedId) document.getElementById(focusedId)?.focus();
   main.scrollTop = scrollTop;
 }
 
@@ -38,6 +40,9 @@ function navigate(view, focusService) {
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => navigate(tab.dataset.view));
 });
+
+// Opening or closing an add-instance form only changes this view
+main.addEventListener("redraw", () => render());
 
 document.getElementById("open-options")?.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();

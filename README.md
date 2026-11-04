@@ -41,7 +41,7 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 
 - **Automatic Redirects:** Seamlessly redirects major platforms to privacy-friendly alternatives
 - **Highly Customizable:** Enable/disable redirects on a per-site basis, and see where each site goes
-- **Use Your Own Instance:** Self-hosting? Make your instance the default for any site
+- **Use Your Own Instances:** Add as many as you like for any project, or make one the default for a site
 - **Instance Directory:** Browse every known host, its source and when it was last checked
 - **Open-Source Directory:** Find the repository behind every frontend, ready to self-host
 - **Quick Access Panel:** Easily access all supported privacy frontends with one click
@@ -65,11 +65,11 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 
 ### Currently not redirected
 
-Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre) and IMDB (LibreMDB) have no working instance on the bundled list, so these sites open normally until you add your own in the **Self-host** tab.
+Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre), IMDB (LibreMDB) and Odysee (Librarian) have no working instance on the bundled list, so these sites open normally until you add your own.
 
-### Self-hosting
+### Adding your own instances
 
-Every frontend is open source, and the **Self-host** tab links each project's repository. Enter your instance's address there, or pick any host with **Use as default** in the **Instances** tab, and that site redirects to it instead of the public list. A failed connection to an instance you chose shows Chrome's error page; it never falls back to a public instance.
+Every frontend is open source, and the **Self-host** tab links each project's repository. Add as many instances as you like from the **Instances** or **Self-host** tab. A site with instances of yours uses only those, moving to the next if one can't be reached, and never falls back to a public host. **Use as default** in the **Instances** tab sends a site to one host only. Search engines aren't redirected, so instances added for them open from **Quick access**.
 
 ### Where the instances come from
 
@@ -119,8 +119,8 @@ PrivacyRedirect+ provides quick access to various privacy-focused services:
 
 1. Click the PrivacyRedirect+ icon in your browser toolbar
 2. In **Sites**, toggle individual sites on/off and see where each one goes
-3. In **Instances**, browse every known host and its source
-4. In **Self-host**, find each project's repository and add your own instance
+3. In **Instances**, browse every known host and its source, and add your own
+4. In **Self-host**, find each project's repository and add the instances you run
 5. In **Quick access**, open a privacy service directly
 
 ## ⚙️ Configuration

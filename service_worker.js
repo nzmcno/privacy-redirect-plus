@@ -2,7 +2,7 @@
 // Chrome Extension Background Script for PrivacyRedirect+
 // Redirects popular domains to their privacy-focused alternatives
 
-import { INSTANCE_FILTER, NAVIGATION_FILTER, getRedirect, pickInstance } from "./redirects.js";
+import { NAVIGATION_FILTER, failoverFilter, getRedirect, pickInstance } from "./redirects.js";
 
 // Failures that say nothing about the instance, so trying another one wouldn't help
 const NON_RETRYABLE_ERRORS = new Set([
@@ -12,20 +12,7 @@ const NON_RETRYABLE_ERRORS = new Set([
 ]);
 
 let customMap = {};
-let customInstances = {};
-
-// The worker stops when idle and restarts for the navigation that wakes it, so that
-// navigation has to wait for saved settings rather than being skipped.
-const settingsReady = chrome.storage.sync.get(["customMap", "customInstances"]).then((res) => {
-  customMap = res.customMap ?? {};
-  customInstances = res.customInstances ?? {};
-});
-
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "sync") return;
-  if (changes.customMap) customMap = changes.customMap.newValue ?? {};
-  if (changes.customInstances) customInstances = changes.customInstances.newValue ?? {};
-});
+let prefs = { customInstances: {}, addedInstances: {} };
 
 // Redirects still loading, by tab, so a failed instance can be swapped for another
 const activeRedirects = new Map();
@@ -36,33 +23,15 @@ function navigateTab(tabId, url) {
   });
 }
 
-// Core redirection logic using webNavigation API for Manifest V3
-chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-  // Only process main frame navigations (not iframes, etc)
-  if (details.frameId !== 0) return;
-
-  await settingsReady;
-
-  const redirect = getRedirect(details.url, customMap, customInstances);
-  if (!redirect) return;
-
-  if (redirect.pinned) {
-    activeRedirects.delete(details.tabId);
-  } else {
-    activeRedirects.set(details.tabId, { service: redirect.service, tried: [redirect.instance] });
-  }
-  navigateTab(details.tabId, redirect.url);
-}, NAVIGATION_FILTER);
-
 // Nothing checks instance health ahead of time, so move on to another one if this one can't be reached.
 // HTTP errors from a reachable instance still load as pages and can't be detected here.
-chrome.webNavigation.onErrorOccurred.addListener((details) => {
+function onInstanceFailed(details) {
   const redirect = activeRedirects.get(details.tabId);
   if (details.frameId !== 0 || !redirect) return;
 
   const instance = NON_RETRYABLE_ERRORS.has(details.error)
     ? null
-    : pickInstance(redirect.service, redirect.tried);
+    : pickInstance(redirect.service, redirect.tried, prefs.addedInstances);
 
   if (!instance) {
     activeRedirects.delete(details.tabId);
@@ -72,8 +41,54 @@ chrome.webNavigation.onErrorOccurred.addListener((details) => {
   redirect.tried.push(instance);
   const { pathname, search, hash } = new URL(details.url);
   navigateTab(details.tabId, instance + pathname + search + hash);
-}, INSTANCE_FILTER);
+}
 
-chrome.webNavigation.onCommitted.addListener((details) => {
+function onInstanceLoaded(details) {
   if (details.frameId === 0) activeRedirects.delete(details.tabId);
-}, INSTANCE_FILTER);
+}
+
+// Registered once settings are known, because the filter includes instances the user added.
+// Failover only runs just after a redirect, while the worker is awake, so these needn't wake it.
+function watchInstances() {
+  const filter = failoverFilter(prefs.addedInstances);
+  chrome.webNavigation.onErrorOccurred.removeListener(onInstanceFailed);
+  chrome.webNavigation.onCommitted.removeListener(onInstanceLoaded);
+  chrome.webNavigation.onErrorOccurred.addListener(onInstanceFailed, filter);
+  chrome.webNavigation.onCommitted.addListener(onInstanceLoaded, filter);
+}
+
+// The worker stops when idle and restarts for the navigation that wakes it, so that
+// navigation has to wait for saved settings rather than being skipped.
+const settingsReady = chrome.storage.sync.get(["customMap", "customInstances", "addedInstances"]).then((res) => {
+  customMap = res.customMap ?? {};
+  prefs = { customInstances: res.customInstances ?? {}, addedInstances: res.addedInstances ?? {} };
+  watchInstances();
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "sync") return;
+  if (changes.customMap) customMap = changes.customMap.newValue ?? {};
+  if (changes.customInstances) prefs.customInstances = changes.customInstances.newValue ?? {};
+  if (changes.addedInstances) {
+    prefs.addedInstances = changes.addedInstances.newValue ?? {};
+    watchInstances();
+  }
+});
+
+// Core redirection logic using webNavigation API for Manifest V3
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  // Only process main frame navigations (not iframes, etc)
+  if (details.frameId !== 0) return;
+
+  await settingsReady;
+
+  const redirect = getRedirect(details.url, customMap, prefs);
+  if (!redirect) return;
+
+  if (redirect.pinned) {
+    activeRedirects.delete(details.tabId);
+  } else {
+    activeRedirects.set(details.tabId, { service: redirect.service, tried: [redirect.instance] });
+  }
+  navigateTab(details.tabId, redirect.url);
+}, NAVIGATION_FILTER);
