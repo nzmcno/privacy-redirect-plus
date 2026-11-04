@@ -3,7 +3,9 @@
 
 // farside.link shut down in August 2026 and its repository is archived, so its list no longer changes.
 // These hosts come from its final services.json (benbusby/farside@af08778f3c), minus the ones that were
-// unreachable or broken when checked on 2026-11-04. A site whose service has no hosts is not redirected.
+// unreachable or broken when checked on 2026-11-04. The exception is dumb, which had no working host
+// there, so its hosts come from LibRedirect (libredirect/instances, data.json). A site whose service has
+// no hosts is not redirected.
 export const INSTANCES = {
   invidious: ["https://yt.chocolatemoo53.com", "https://inv.nadeko.net", "https://invidious.tiekoetter.com"],
   nitter: ["https://nitter.tiekoetter.com"],
@@ -34,7 +36,7 @@ export const INSTANCES = {
     "https://breezewiki.private.coffee",
     "https://breezewiki.pussthecat.org"
   ],
-  dumb: [],
+  dumb: ["https://dumb.artemislena.eu", "https://dumb.bloat.cat", "https://genius.fsky.io"],
   tent: [
     "https://bandcamp.lurkmore.com",
     "https://tent.deep-swarm.xyz",
@@ -93,6 +95,7 @@ export const CATEGORIZED_QUICK_LINKS = {
   "Medium": ["scribe"],
   "Imgur": ["rimgo"],
   "Fandom": ["breezewiki"],
+  "Genius.com": ["dumb"],
   "Bandcamp": ["tent"]
 };
 

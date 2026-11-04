@@ -32,6 +32,7 @@ test("covers www and mobile hosts", () => {
   assertRedirectsTo("https://m.youtube.com/watch?v=a", "invidious", "/watch?v=a");
   assertRedirectsTo("https://www.x.com/jack", "nitter", "/jack");
   assertRedirectsTo("https://old.reddit.com/r/privacy", "redlib", "/r/privacy");
+  assertRedirectsTo("https://genius.com/Artist-song-lyrics", "dumb", "/Artist-song-lyrics");
 });
 
 test("maps Fandom wiki subdomains to BreezeWiki paths", () => {

@@ -58,15 +58,16 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 | Imgur            | Rimgo           | Privacy-friendly Imgur frontend     |
 | Google Translate | SimplyTranslate | Privacy-respecting translator       |
 | Fandom           | BreezeWiki      | Better Fandom experience            |
+| Genius           | Dumb            | Clean, fast lyrics site             |
 | Bandcamp         | Tent            | Alternative Bandcamp frontend       |
 
 ### Currently not redirected
 
-Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre), IMDB (LibreMDB) and Genius (Dumb) have no working instance on the bundled list, so these sites open normally.
+Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre) and IMDB (LibreMDB) have no working instance on the bundled list, so these sites open normally.
 
 ### Where the instances come from
 
-[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. The list is bundled with the extension and is not fetched at runtime. Nothing checks instance health ahead of time: the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
+[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. Dumb had no working host there, so its hosts come from [LibRedirect](https://github.com/libredirect/instances). The list is bundled with the extension and is not fetched at runtime. Nothing checks instance health ahead of time: the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
 
 ## 🔎 Quick Access Services
 
@@ -97,6 +98,7 @@ PrivacyRedirect+ provides quick access to various privacy-focused services:
 - Scribe - Medium frontend
 - Rimgo - Imgur frontend
 - BreezeWiki - Fandom frontend
+- Dumb - Genius.com frontend
 - Tent - Bandcamp frontend
 
 ## 📦 Manual Installation
