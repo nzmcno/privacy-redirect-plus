@@ -40,9 +40,11 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 ## 🚀 Features
 
 - **Automatic Redirects:** Seamlessly redirects major platforms to privacy-friendly alternatives
-- **Highly Customizable:** Enable/disable redirects on a per-site basis
+- **Highly Customizable:** Enable/disable redirects on a per-site basis, and see where each site goes
+- **Use Your Own Instance:** Self-hosting? Make your instance the default for any site
+- **Instance Directory:** Browse every known host, its source and when it was last checked
+- **Open-Source Directory:** Find the repository behind every frontend, ready to self-host
 - **Quick Access Panel:** Easily access all supported privacy frontends with one click
-- **Clean UI:** Simple, intuitive interface with categorized services
 - **No Tracking:** Zero data collection, completely respects your privacy
 
 ## 🔄 Supported Redirects
@@ -63,11 +65,15 @@ If you find PrivacyRedirect+ useful, consider supporting its development:
 
 ### Currently not redirected
 
-Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre) and IMDB (LibreMDB) have no working instance on the bundled list, so these sites open normally.
+Instagram (Proxigram), TikTok (ProxiTok), Stack Overflow (AnonymousOverflow), Quora (Quetre) and IMDB (LibreMDB) have no working instance on the bundled list, so these sites open normally until you add your own in the **Self-host** tab.
+
+### Self-hosting
+
+Every frontend is open source, and the **Self-host** tab links each project's repository. Enter your instance's address there, or pick any host with **Use as default** in the **Instances** tab, and that site redirects to it instead of the public list. A failed connection to an instance you chose shows Chrome's error page; it never falls back to a public instance.
 
 ### Where the instances come from
 
-[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. Dumb had no working host there, so its hosts come from [LibRedirect](https://github.com/libredirect/instances). The list is bundled with the extension and is not fetched at runtime. Nothing checks instance health ahead of time: the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
+[Farside](https://github.com/benbusby/farside), which used to choose an instance for this extension, shut down in August 2026. The hosts in [`redirects.js`](redirects.js) come from its final `services.json`, minus the ones that were unreachable or broken when checked on 2026-11-04. Dumb had no working host there, so its hosts come from [LibRedirect](https://github.com/libredirect/instances). Farside's own data is kept in [`data/`](data/): its final `services.json` and the last public list saved by the Internet Archive on 2026-07-19. The list is bundled with the extension and is not fetched at runtime. Nothing checks instance health ahead of time: the extension tries another instance if one can't be reached, but an instance that responds with an error page or a visitor check is shown as is.
 
 ## 🔎 Quick Access Services
 
@@ -112,8 +118,10 @@ PrivacyRedirect+ provides quick access to various privacy-focused services:
 ## 🔧 Usage
 
 1. Click the PrivacyRedirect+ icon in your browser toolbar
-2. Toggle individual sites on/off as needed
-3. Access the "Quick Access" tab for direct links to privacy services
+2. In **Sites**, toggle individual sites on/off and see where each one goes
+3. In **Instances**, browse every known host and its source
+4. In **Self-host**, find each project's repository and add your own instance
+5. In **Quick access**, open a privacy service directly
 
 ## ⚙️ Configuration
 

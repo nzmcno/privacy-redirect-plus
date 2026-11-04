@@ -12,17 +12,19 @@ const NON_RETRYABLE_ERRORS = new Set([
 ]);
 
 let customMap = {};
+let customInstances = {};
 
 // The worker stops when idle and restarts for the navigation that wakes it, so that
 // navigation has to wait for saved settings rather than being skipped.
-const settingsReady = chrome.storage.sync.get("customMap").then((res) => {
+const settingsReady = chrome.storage.sync.get(["customMap", "customInstances"]).then((res) => {
   customMap = res.customMap ?? {};
+  customInstances = res.customInstances ?? {};
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === "sync" && changes.customMap) {
-    customMap = changes.customMap.newValue ?? {};
-  }
+  if (area !== "sync") return;
+  if (changes.customMap) customMap = changes.customMap.newValue ?? {};
+  if (changes.customInstances) customInstances = changes.customInstances.newValue ?? {};
 });
 
 // Redirects still loading, by tab, so a failed instance can be swapped for another
@@ -41,10 +43,14 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
   await settingsReady;
 
-  const redirect = getRedirect(details.url, customMap);
+  const redirect = getRedirect(details.url, customMap, customInstances);
   if (!redirect) return;
 
-  activeRedirects.set(details.tabId, { service: redirect.service, tried: [redirect.instance] });
+  if (redirect.pinned) {
+    activeRedirects.delete(details.tabId);
+  } else {
+    activeRedirects.set(details.tabId, { service: redirect.service, tried: [redirect.instance] });
+  }
   navigateTab(details.tabId, redirect.url);
 }, NAVIGATION_FILTER);
 

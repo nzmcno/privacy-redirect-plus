@@ -5,122 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PrivacyRedirect+</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      min-width: 300px;
-      max-width: 350px;
-      margin: 0;
-      padding: 0;
-    }
-    .popup-container {
-      padding: 0.5rem 1rem;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid #eee;
-    }
-    .header h3 {
-      margin: 0;
-    }
-    .global-info {
-      background-color: #f0f8ff;
-      border-left: 3px solid #007bff;
-      padding: 0.5rem;
-      margin-bottom: 0.8rem;
-      font-size: 0.9rem;
-    }
-    .options-button {
-      padding: 0.3rem 0.6rem;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-    .tab-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.8rem;
-    }
-    .tab-buttons button {
-      flex: 1;
-      padding: 0.5rem;
-      border: none;
-      background: #eee;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-    .tab-buttons .active {
-      background: #007bff;
-      color: white;
-    }
-    #redirects-tab-content, #quickaccess-tab-content {
-      max-height: 320px;
-      overflow-y: auto;
-    }
-    .toggle-row {
-      font-size: 0.9rem;
-    }
-    .quickaccess-category {
-      margin-bottom: 1rem;
-    }
-    .category-title {
-      color: #333;
-      margin: 0.5rem 0;
-      padding-bottom: 0.3rem;
-      border-bottom: 1px solid #eee;
-      font-size: 0.9rem;
-    }
-    .category-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-    }
-    .quicklink-button {
-      padding: 0.3rem 0.6rem;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      flex: 0 1 auto;
-    }
-    .quicklink-button:hover {
-      background: #0069d9;
-    }
-  </style>
 </head>
-<body>
-  <div class="popup-container">
-    <div class="header">
-      <h3>PrivacyRedirect+</h3>
-      <button id="open-options" class="options-button">Settings</button>
-    </div>
-    
-    <div class="global-info">
-      Choose which sites to redirect below
-    </div>
-    
-    <div class="tab-buttons">
-      <button id="redirects-tab" class="active">Redirects</button>
-      <button id="quickaccess-tab">Quick Access</button>
-    </div>
-    
-    <div id="redirects-tab-content">
-      <!-- Redirect toggles will be generated here by JS -->
-    </div>
-    
-    <div id="quickaccess-tab-content" style="display:none">
-      <!-- Quick access links will be generated here by JS -->
-    </div>
+<body class="popup">
+  <div class="shell">
+    <header class="brand">
+      <svg class="mark" viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="2.5"/><circle cx="16" cy="4" r="2.5"/><circle cx="16" cy="16" r="2.5"/><path d="M6.5 10H9c2 0 2-6 4.5-6M9 10c2 0 2 6 4.5 6"/></svg>
+      <span class="brand-name">PrivacyRedirect+</span>
+      <button id="open-options" type="button" class="button">Full page</button>
+    </header>
+    <nav class="nav" aria-label="Sections">
+      <button type="button" data-view="sites">Sites</button>
+      <button type="button" data-view="instances">Instances</button>
+      <button type="button" data-view="self-host">Self-host</button>
+      <button type="button" data-view="quick">Quick access</button>
+    </nav>
+    <main id="view" class="sheet" tabindex="-1"></main>
   </div>
-  <script type="module" src="popup.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

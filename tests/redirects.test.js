@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
+import { FARSIDE_ARCHIVE } from "../archive.js";
+import { INSTANCE_NOTES, PROJECTS, SOURCES } from "../catalog.js";
 import {
   CATEGORIZED_QUICK_LINKS,
   INSTANCES,
@@ -9,6 +12,7 @@ import {
   getRedirect,
   hasInstances,
   isSiteEnabled,
+  parseInstanceUrl,
   pickInstance
 } from "../redirects.js";
 
@@ -110,8 +114,84 @@ test("data is consistent", () => {
   }
 });
 
-test("listener filter covers exactly the sites that can redirect", () => {
+test("listener filter covers every site, including those waiting for an instance", () => {
   const filtered = NAVIGATION_FILTER.url.map((rule) => rule.hostEquals).filter(Boolean);
-  const expected = SITES.filter(hasInstances).flatMap((site) => site.hosts);
-  assert.deepEqual(filtered, expected);
+  assert.deepEqual(filtered, SITES.flatMap((site) => site.hosts));
+});
+
+test("a chosen instance becomes the default, without fallback", () => {
+  const custom = { invidious: "https://tube.home.example" };
+  const redirect = getRedirect("https://www.youtube.com/watch?v=a#t", {}, custom);
+  assert.equal(redirect.url, "https://tube.home.example/watch?v=a#t");
+  assert.equal(redirect.pinned, true);
+  assert.equal(getRedirect("https://www.youtube.com/", {}).pinned, false);
+});
+
+test("adding an instance turns on a site with no public host", () => {
+  const site = siteNamed("TikTok");
+  assert.equal(hasInstances(site), false);
+  assert.equal(getRedirect("https://www.tiktok.com/@a", {}), null);
+
+  const custom = { proxitok: "http://192.168.1.20:8080/tok" };
+  assert.equal(hasInstances(site, custom), true);
+  assert.equal(getRedirect("https://www.tiktok.com/@a", {}, custom).url, "http://192.168.1.20:8080/tok/@a");
+});
+
+test("turning a site off beats its chosen instance", () => {
+  const customMap = Object.fromEntries(siteNamed("YouTube").hosts.map((host) => [host, ""]));
+  assert.equal(getRedirect("https://youtube.com/", customMap, { invidious: "https://tube.home.example" }), null);
+});
+
+test("parseInstanceUrl accepts what people type and explains what it refuses", () => {
+  assert.deepEqual(parseInstanceUrl("tube.home.example"), { url: "https://tube.home.example" });
+  assert.deepEqual(parseInstanceUrl("  https://tube.home.example/  "), { url: "https://tube.home.example" });
+  assert.deepEqual(parseInstanceUrl("http://192.168.1.20:8080"), { url: "http://192.168.1.20:8080" });
+  assert.deepEqual(parseInstanceUrl("localhost:3000"), { url: "https://localhost:3000" });
+  assert.deepEqual(parseInstanceUrl("https://home.example/tok/"), { url: "https://home.example/tok" });
+
+  for (const bad of ["", "   ", "javascript://alert(1)", "ftp://a.example", "https://user:pw@a.example", "https://a b"]) {
+    assert.ok(parseInstanceUrl(bad).error, JSON.stringify(bad));
+  }
+  for (const looping of ["https://www.youtube.com", "x.com", "https://minecraft.fandom.com"]) {
+    assert.match(parseInstanceUrl(looping).error, /loop/, looping);
+  }
+});
+
+test("archive.js matches the saved snapshot exactly", () => {
+  const md = readFileSync(new URL("../data/farside-snapshot-2026-07-19.md", import.meta.url), "utf8");
+  const parsed = {};
+  let current = null;
+  for (const line of md.split("\n")) {
+    const service = line.match(/^\* \[([^\]]+)\]/);
+    if (service) {
+      current = service[1];
+      parsed[current] = [];
+    }
+    const host = line.match(/^\s+\* (https:\/\/\S+)/);
+    if (host) parsed[current].push(host[1]);
+  }
+  assert.deepEqual(FARSIDE_ARCHIVE, parsed);
+});
+
+test("catalog covers everything the UI looks up", () => {
+  const services = PROJECTS.map((project) => project.service);
+  assert.equal(new Set(services).size, services.length, "one entry per project");
+
+  for (const site of SITES) {
+    assert.ok(services.includes(site.service), `${site.name} has a project`);
+    assert.ok(PROJECTS.some((project) => project.replaces === site.name), `${site.name} has a group`);
+  }
+  for (const service of Object.keys(FARSIDE_ARCHIVE)) {
+    assert.ok(services.includes(service), `archive service ${service} is listed`);
+  }
+  for (const service of Object.values(CATEGORIZED_QUICK_LINKS).flat()) {
+    assert.ok(services.includes(service), `quick link ${service} is listed`);
+  }
+  for (const url of [...PROJECTS.map((project) => project.repo), ...SOURCES.map((source) => source.url)]) {
+    assert.ok(url.startsWith("https://"), url);
+  }
+  const hosts = Object.values(INSTANCES).flat();
+  for (const url of Object.keys(INSTANCE_NOTES)) {
+    assert.ok(hosts.includes(url), `note for ${url} matches a host`);
+  }
 });

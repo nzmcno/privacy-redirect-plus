@@ -3,9 +3,9 @@
 
 // farside.link shut down in August 2026 and its repository is archived, so its list no longer changes.
 // These hosts come from its final services.json (benbusby/farside@af08778f3c), minus the ones that were
-// unreachable or broken when checked on 2026-11-04. The exception is dumb, which had no working host
-// there, so its hosts come from LibRedirect (libredirect/instances, data.json). A site whose service has
-// no hosts is not redirected.
+// unreachable or broken when checked on 2026-11-04. Two exceptions: dumb had no working host there, so its
+// hosts come from LibRedirect (libredirect/instances, data.json), and most searxng hosts come from Farside's
+// July archive (archive.js). A site whose service has no hosts is only redirected to the user's own instance.
 export const INSTANCES = {
   invidious: ["https://yt.chocolatemoo53.com", "https://inv.nadeko.net", "https://invidious.tiekoetter.com"],
   nitter: ["https://nitter.tiekoetter.com"],
@@ -36,7 +36,7 @@ export const INSTANCES = {
     "https://breezewiki.private.coffee",
     "https://breezewiki.pussthecat.org"
   ],
-  dumb: ["https://dumb.artemislena.eu", "https://dumb.bloat.cat", "https://genius.fsky.io"],
+  dumb: ["https://dumb.artemislena.eu", "https://dumb.bloat.cat"],
   tent: [
     "https://bandcamp.lurkmore.com",
     "https://tent.deep-swarm.xyz",
@@ -46,7 +46,14 @@ export const INSTANCES = {
   ],
   gothub: ["https://gothub.projectsegfau.lt"],
   whoogle: ["https://search.sethforprivacy.com"],
-  searxng: ["https://searx.be"],
+  searxng: [
+    "https://searx.be",
+    "https://baresearch.org",
+    "https://paulgo.io",
+    "https://priv.au",
+    "https://search.inetol.net",
+    "https://searx.tiekoetter.com"
+  ],
   "4get": ["https://4get.ca", "https://4get.dcs0.hu", "https://4get.hbubli.cc", "https://4get.lunar.icu"],
   librey: ["https://librey.darkness.services"]
 };
@@ -95,7 +102,7 @@ export const CATEGORIZED_QUICK_LINKS = {
   "Medium": ["scribe"],
   "Imgur": ["rimgo"],
   "Fandom": ["breezewiki"],
-  "Genius.com": ["dumb"],
+  "Genius": ["dumb"],
   "Bandcamp": ["tent"]
 };
 
@@ -104,9 +111,10 @@ const FANDOM_WIKI_PATH = /^\/([a-z-]+\/)?wiki\//;
 
 // Limits the listeners to relevant hosts, so the worker never sees the rest of the user's browsing.
 // "hostEquals" rather than "hostSuffix", which would make x.com match netflix.com.
+// Includes sites with no public host, since adding an instance shouldn't need a filter change.
 export const NAVIGATION_FILTER = {
   url: [
-    ...SITES.filter(hasInstances).flatMap((site) => site.hosts.map((hostEquals) => ({ hostEquals }))),
+    ...SITES.flatMap((site) => site.hosts.map((hostEquals) => ({ hostEquals }))),
     { hostSuffix: ".fandom.com" }
   ]
 };
@@ -115,8 +123,9 @@ export const INSTANCE_FILTER = {
   url: Object.values(INSTANCES).flat().map((instance) => ({ hostEquals: new URL(instance).hostname }))
 };
 
-export function hasInstances(site) {
-  return INSTANCES[site.service].length > 0;
+// customInstances maps a service to the instance the user chose as its default
+export function hasInstances(site, customInstances = {}) {
+  return Boolean(customInstances[site.service]) || INSTANCES[site.service].length > 0;
 }
 
 // Only an empty string disables a site. Older versions also stored farside.link URLs here when a
@@ -143,18 +152,43 @@ function findTarget(url) {
   return null;
 }
 
-// Returns where a navigation should go, or null if it should be left alone
-export function getRedirect(rawUrl, customMap) {
+// Returns where a navigation should go, or null if it should be left alone.
+// "pinned" means the user chose this instance, so a failure must not fall back to a public one.
+export function getRedirect(rawUrl, customMap, customInstances = {}) {
   const url = new URL(rawUrl);
   const target = findTarget(url);
   if (!target || !isSiteEnabled(target.site, customMap)) return null;
 
-  const instance = pickInstance(target.site.service);
+  const pinned = customInstances[target.site.service];
+  const instance = pinned ?? pickInstance(target.site.service);
   if (!instance) return null;
 
   return {
     service: target.site.service,
     instance,
+    pinned: Boolean(pinned),
     url: instance + target.pathname + url.search + url.hash
   };
+}
+
+// Checks an address typed by the user. Returns { url } or { error }, with the error ready to show.
+export function parseInstanceUrl(input) {
+  const text = input.trim();
+  if (!text) return { error: "Enter the address of your instance." };
+
+  let url;
+  try {
+    url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : `https://${text}`);
+  } catch {
+    return { error: "That isn't a valid address. Try https://invidious.example.com." };
+  }
+
+  if (!["http:", "https:"].includes(url.protocol)) return { error: "Use an http or https address." };
+  if (url.username || url.password) return { error: "Leave out the username and password." };
+  if (findTarget(new URL(`${url.origin}/wiki/`))) {
+    return { error: `${url.hostname} is a site this extension redirects, so it would loop.` };
+  }
+
+  // Keeps the path for instances served from a subfolder behind a reverse proxy
+  return { url: url.origin + url.pathname.replace(/\/+$/, "") };
 }

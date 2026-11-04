@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "PrivacyRedirect+",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Automatically redirects visits from known platforms to open-source, privacy-friendly alternatives.",
     "permissions": ["webNavigation", "storage"],
     "background": {
